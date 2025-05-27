@@ -1,0 +1,56 @@
+// Teste Unitário: Verificar unicidade de e-mail
+DESCRIÇÃO: Garantir que o sistema rejeite um e-mail já registrado
+
+FUNÇÃO testarUnicidadeEmail()
+  // Configuração
+  bancoDeDados = inicializarBancoDeDadosFalso()
+  bancoDeDados.inserirUsuario({
+    nome: "João Silva",
+    email: "joao@exemplo.com",
+    endereco: "Rua A, 123",
+    telefone: "123456789"
+  })
+
+  // Ação
+  resultado = tentarRegistrarUsuario({
+    nome: "Maria Souza",
+    email: "joao@exemplo.com", // E-mail duplicado
+    endereco: "Rua B, 456",
+    telefone: "987654321"
+  })
+
+  // Verificação
+  ESPERAR que resultado.erro seja "E-mail já está em uso"
+  ESPERAR que bancoDeDados.contarUsuarios() seja 1 // Nenhum novo usuário foi adicionado
+
+  // Teste com e-mail diferente
+  resultado = tentarRegistrarUsuario({
+    nome: "Maria Souza",
+    email: "maria@exemplo.com",
+    endereco: "Rua B, 456",
+    telefone: "987654321"
+  })
+
+  // Verificação
+  ESPERAR que resultado.sucesso seja verdadeiro
+  ESPERAR que bancoDeDados.contarUsuarios() seja 2 // Novo usuário foi adicionado
+FIM
+
+--------------------------------------------------------------------------
+
+Tratamento de Casos Extremos
+-Campos Obrigatórios Ausentes:
+    Exibir mensagem de erro clara, como "Nome e e-mail são obrigatórios".
+    Teste E2E: Simular envio de formulário sem nome ou e-mail e verificar mensagem de erro na interface.
+-E-mail Inválido:
+    Usar uma expressão regular robusta para validar o formato do e-mail.
+-Teste Unitário: Passar entradas como "user@", "user@.com" ou "@domain.com" e esperar erro.
+-E-mail Duplicado:
+    Verificar no banco de dados antes de salvar e retornar erro se o e-mail já existir.
+-Teste de Integração: Tentar inserir dois usuários com o mesmo e-mail e verificar que o segundo falha.
+-Permissões de Administrador:
+    Verificar o papel do usuário antes de permitir exclusão.
+-Teste Unitário: Simular uma tentativa de exclusão por um usuário não administrador e esperar erro de permissão.
+-Entradas Longas ou Maliciosas:
+    Definir limites de tamanho para campos (ex.: nome até 100 caracteres) e sanitizar entradas para evitar injeções.
+-Teste Unitário: Passar uma string com 1000 caracteres ou código SQL malicioso e verificar rejeição.
